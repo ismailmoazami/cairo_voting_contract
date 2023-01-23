@@ -28,6 +28,15 @@ func voter_info(address: felt) -> (res: voterInfo) {
 func registered_user(address: felt) -> (is_registered: felt) {
 }
 
+@constructor
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}
+                (owner_address: felt, registered_addresses_len: felt, registered_addresses: felt*){
+    alloc_locals;
+    Ownable.initializer(ower_address);
+    register_users(registered_addresses_len, registered_addresses);
+    return ();
+}
+
 func register_users{syscall_ptr : felt*,
                     pedersen_ptr : HashBuiltin*,
                     range_check_ptr,}
