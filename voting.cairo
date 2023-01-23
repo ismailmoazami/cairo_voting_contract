@@ -80,3 +80,13 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}(vote
     return ();
 }
 
+@view 
+func get_voting_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}() -> (current_voting_status: voteCounting) {
+    return (current_voting_status=voting_status.read());
+}
+
+@view 
+func get_user_voting_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}(user_address: felt) -> (voter_current_status: voterInfo) {
+    return (voter_current_status = voter_info.read(user_address));
+}
+
