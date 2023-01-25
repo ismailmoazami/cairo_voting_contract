@@ -29,25 +29,25 @@ func registered_user(address: felt) -> (is_registered: felt) {
 }
 
 @constructor
-func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}
-                (owner_address: felt, registered_addresses_len: felt, registered_addresses: felt*){
+func constructor{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}(
+                owner_address: felt, registered_addresses_len: felt, registered_addresses: felt*){
     alloc_locals;
-    Ownable.initializer(ower_address);
+    Ownable.initializer(owner_address);
     register_users(registered_addresses_len, registered_addresses);
     return ();
 }
 
 func register_users{syscall_ptr : felt*,
                     pedersen_ptr : HashBuiltin*,
-                    range_check_ptr,}
-                    (registered_addressed_len: felt, registered_addresses) {
+                    range_check_ptr,}(
+                    registered_addresses_len: felt, registered_addresses: felt*) {
     if (registered_addresses_len == 0){
         return ();
     }
 
     let voter_info_struct = voterInfo(allowed=1);
     
-    registered_user(registered_addresses[registered_addresses_len - 1], 1);
+    registered_user.write(registered_addresses[registered_addresses_len - 1], 1);
     voter_info.write(registered_addresses[registered_addresses_len - 1], voter_info_struct);
 
     return register_users(registered_addresses_len - 1, registered_addresses);
@@ -65,24 +65,23 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}(vote
 {
     alloc_locals; 
     Pausable.assert_not_paused();
-    let (user_address) = get_caller_address()
-    let (info) = voter_info(user_address);
+    let (user_address) = get_caller_address();
+    let (info) = voter_info.read(user_address);
     vote_allowed(info);
 
-    updated_info = voterInfo(allowed=0);
+    let updated_info = voterInfo(allowed=0);
     voter_info.write(user_address, updated_info);
 
-    let (status) = voting_status();
-    let (new_status) :voteCounting;
+    let (status) = voting_status.read();
+    local new_status :voteCounting;
 
     if(vote == 0) {
         assert new_status.votes_no = status.votes_no + 1;
         assert new_status.votes_yes = status.votes_yes;
-    }if(vote==1){
+    }
+    if(vote==1){
         assert new_status.votes_yes = status.votes_yes + 1;
         assert new_status.votes_no = status.votes_no;
-    }else{
-        return();
     }
 
     voting_status.write(new_status);
@@ -91,11 +90,13 @@ func vote{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}(vote
 
 @view 
 func get_voting_status{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}() -> (current_voting_status: voteCounting) {
-    return (current_voting_status=voting_status.read());
+    let (current_voting_status) =voting_status.read();
+    return (current_voting_status=current_voting_status);
 }
 
 @view 
 func get_user_voting_info{syscall_ptr : felt*, pedersen_ptr : HashBuiltin*,range_check_ptr}(user_address: felt) -> (voter_current_status: voterInfo) {
-    return (voter_current_status = voter_info.read(user_address));
+    let (voter_current_status) = voter_info.read(user_address);
+    return (voter_current_status=voter_current_status);
 }
 
